@@ -1,5 +1,9 @@
 # registry
 
+Checkout module spec [here](./x/registry/readme.md)
+
+Checkout comments to the task [here](./comments-to-task.md)
+
 **registry** is a blockchain built using Cosmos SDK and Tendermint and created with [Starport](https://github.com/tendermint/starport).
 
 ## Get started
