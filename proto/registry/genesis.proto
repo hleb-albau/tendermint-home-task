@@ -1,0 +1,12 @@
+syntax = "proto3";
+package hlebalbau.registry.registry;
+
+// this line is used by starport scaffolding # genesis/proto/import
+
+option go_package = "github.com/hleb-albau/registry/x/registry/types";
+
+// GenesisState defines the registry module's genesis state.
+message GenesisState {
+    // this line is used by starport scaffolding # genesis/proto/state
+    // this line is used by starport scaffolding # ibc/genesis/proto
+}
