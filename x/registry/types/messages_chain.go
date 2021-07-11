@@ -38,7 +38,7 @@ func (msg *MsgRegisterChain) GetSignBytes() []byte {
 func (msg *MsgRegisterChain) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
 	}
 	if !validateChainID(msg.ChainID) {
 		return sdkerrors.Wrap(ErrInvalidChain, "chainID contains not allowed characters")
@@ -79,9 +79,52 @@ func (msg *MsgUpdateChain) GetSignBytes() []byte {
 func (msg *MsgUpdateChain) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
 	}
 	return nil
+}
+
+var _ sdk.Msg = &MsgTransferChainOwnership{}
+
+func NewMsgTransferChainOwnership(chainID string, owner string, newOwner string) *MsgTransferChainOwnership {
+	return &MsgTransferChainOwnership{
+		ChainID:  chainID,
+		Owner:    owner,
+		NewOwner: newOwner,
+	}
+}
+
+func (m *MsgTransferChainOwnership) Route() string {
+	return RouterKey
+}
+
+func (m *MsgTransferChainOwnership) Type() string {
+	return "TransferChainOwnership"
+}
+
+func (m *MsgTransferChainOwnership) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Owner)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
+	}
+	_, err = sdk.AccAddressFromBech32(m.NewOwner)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid new owner address (%s)", err)
+	}
+	return nil
+}
+
+func (m *MsgTransferChainOwnership) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m *MsgTransferChainOwnership) GetSigners() []sdk.AccAddress {
+	owner, err := sdk.AccAddressFromBech32(m.Owner)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{owner}
 }
 
 func validateChainID(chainID string) bool {

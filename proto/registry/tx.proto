@@ -11,6 +11,7 @@ service Msg {
   // this line is used by starport scaffolding # proto/tx/rpc
   rpc RegisterChain(MsgRegisterChain) returns (Chain);
   rpc UpdateChain(MsgUpdateChain) returns (Chain);
+  rpc TransferChainOwnership(MsgTransferChainOwnership) returns (Chain);
 }
 
 // this line is used by starport scaffolding # proto/tx/message
@@ -22,4 +23,16 @@ message MsgRegisterChain {
 message MsgUpdateChain {
   string chainID = 1;
   string owner = 2;
+}
+
+message MsgTransferChainOwnership {
+  string chainID = 1;
+  string owner = 2;
+  string newOwner = 3;
+}
+
+message EventChainOwnershipTransfer {
+  string chainID = 1;
+  string owner = 2;
+  string newOwner = 3;
 }

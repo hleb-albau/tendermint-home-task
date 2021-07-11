@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	utils "github.com/hleb-albau/registry/testutil"
 	"strconv"
 	"testing"
 
@@ -16,7 +17,7 @@ func TestChainMsgRegister(t *testing.T) {
 	// positive path
 	srv, k, ctx := setupMsgServer(t)
 	sdkContext := sdk.UnwrapSDKContext(ctx)
-	owner := NewAccAddress()
+	owner := utils.NewAccAddress()
 	for i := 0; i < 5; i++ {
 		_, err := srv.RegisterChain(ctx, &types.MsgRegisterChain{Owner: owner, ChainID: strconv.Itoa(i)})
 		require.NoError(t, err)
@@ -34,7 +35,7 @@ func TestChainMsgRegister(t *testing.T) {
 }
 
 func TestChainMsgServerUpdate(t *testing.T) {
-	owner := NewAccAddress()
+	owner := utils.NewAccAddress()
 
 	for _, tc := range []struct {
 		desc    string
@@ -47,7 +48,7 @@ func TestChainMsgServerUpdate(t *testing.T) {
 		},
 		{
 			desc:    "Unauthorized",
-			request: &types.MsgUpdateChain{Owner: NewAccAddress(), ChainID: "2"},
+			request: &types.MsgUpdateChain{Owner: utils.NewAccAddress(), ChainID: "2"},
 			err:     sdkerrors.ErrUnauthorized,
 		},
 	} {
@@ -65,4 +66,30 @@ func TestChainMsgServerUpdate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestChainMsgTransferOwnership(t *testing.T) {
+	// positive
+	newOwner := utils.NewAccAddress()
+	srv, _, ctx := setupMsgServer(t)
+	chain, err := srv.RegisterChain(ctx, &types.MsgRegisterChain{Owner: utils.NewAccAddress(), ChainID: "0"})
+	require.NoError(t, err)
+	_, err = srv.UpdateChain(ctx, &types.MsgUpdateChain{Owner: newOwner, ChainID: "0"})
+	require.ErrorIs(t, err, sdkerrors.ErrUnauthorized)
+	_, err = srv.TransferChainOwnership(ctx, &types.MsgTransferChainOwnership{Owner: chain.Owner, NewOwner: newOwner, ChainID: "0"})
+	require.NoError(t, err)
+	_, err = srv.UpdateChain(ctx, &types.MsgUpdateChain{Owner: newOwner, ChainID: "0"})
+	require.NoError(t, err)
+
+	// can't transfer chain, that you don't own
+	_, err = srv.RegisterChain(ctx, &types.MsgRegisterChain{Owner: utils.NewAccAddress(), ChainID: "1"})
+	require.NoError(t, err)
+	msg := types.MsgTransferChainOwnership{Owner: utils.NewAccAddress(), NewOwner: utils.NewAccAddress(), ChainID: "1"}
+	_, err = srv.TransferChainOwnership(ctx, &msg)
+	require.ErrorIs(t, err, sdkerrors.ErrUnauthorized)
+
+	// can't transfer non-existing chain
+	msg = types.MsgTransferChainOwnership{Owner: utils.NewAccAddress(), NewOwner: utils.NewAccAddress(), ChainID: "-1"}
+	_, err = srv.TransferChainOwnership(ctx, &msg)
+	require.ErrorIs(t, err, sdkerrors.ErrKeyNotFound)
 }

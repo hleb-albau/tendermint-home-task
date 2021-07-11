@@ -2,6 +2,7 @@ package cli_test
 
 import (
 	"fmt"
+	utils "github.com/hleb-albau/registry/testutil"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -19,7 +20,6 @@ func TestRegisterChain(t *testing.T) {
 	val := net.Validators[0]
 	ctx := val.ClientCtx
 
-	fields := []string{"osmosis"}
 	for _, tc := range []struct {
 		desc string
 		args []string
@@ -28,19 +28,12 @@ func TestRegisterChain(t *testing.T) {
 	}{
 		{
 			desc: "valid",
-			args: []string{
-				fmt.Sprintf("--%s=%s", flags.FlagFrom, val.Address.String()),
-				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(net.Config.BondDenom, sdk.NewInt(10))).String()),
-			},
+			args: commonArgs(net),
 		},
 	} {
 		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
-			args := []string{}
-			args = append(args, fields...)
-			args = append(args, tc.args...)
+			args := append([]string{"someChainID"}, tc.args...)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdRegisterChain(), args)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
@@ -56,20 +49,12 @@ func TestRegisterChain(t *testing.T) {
 
 func TestUpdateChain(t *testing.T) {
 	net := network.New(t)
-
 	val := net.Validators[0]
 	ctx := val.ClientCtx
 
-	fields := []string{"osmosis"}
-	common := []string{
-		fmt.Sprintf("--%s=%s", flags.FlagFrom, val.Address.String()),
-		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(net.Config.BondDenom, sdk.NewInt(10))).String()),
-	}
-	args := []string{}
-	args = append(args, fields...)
-	args = append(args, common...)
+	chainID := "someChainID"
+	common := commonArgs(net)
+	args := append([]string{chainID}, common...)
 	_, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdRegisterChain(), args)
 	require.NoError(t, err)
 
@@ -82,7 +67,7 @@ func TestUpdateChain(t *testing.T) {
 	}{
 		{
 			desc:    "valid",
-			chainID: "osmosis",
+			chainID: chainID,
 			args:    common,
 		},
 		{
@@ -106,5 +91,34 @@ func TestUpdateChain(t *testing.T) {
 				require.Equal(t, tc.code, resp.Code)
 			}
 		})
+	}
+}
+
+// could be added tests all code paths, impl only positive one
+func TestTransferChainOwnership(t *testing.T) {
+	net := network.New(t)
+	val := net.Validators[0]
+	ctx := val.ClientCtx
+
+	chainID := "someChainID"
+	common := commonArgs(net)
+	args := append([]string{chainID}, common...)
+	_, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdRegisterChain(), args)
+	require.NoError(t, err)
+
+	args = append([]string{chainID, utils.NewAccAddress()}, common...)
+	out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdTransferChainOwnership(), args)
+	require.NoError(t, err)
+	var resp sdk.TxResponse
+	require.NoError(t, ctx.JSONMarshaler.UnmarshalJSON(out.Bytes(), &resp))
+	require.Equal(t, uint32(0), resp.Code)
+}
+
+func commonArgs(net *network.Network) []string {
+	return []string{
+		fmt.Sprintf("--%s=%s", flags.FlagFrom, net.Validators[0].Address.String()),
+		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(net.Config.BondDenom, sdk.NewInt(10))).String()),
 	}
 }

@@ -68,3 +68,37 @@ func CmdUpdateChain() *cobra.Command {
 
 	return cmd
 }
+
+func CmdTransferChainOwnership() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "transfer-chain [chainID] [newOwner]",
+		Short: "Transfer ownership for a given chain",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			argsChainID, err := cast.ToStringE(args[0])
+			if err != nil {
+				return err
+			}
+
+			argsNewOwner, err := cast.ToStringE(args[1])
+			if err != nil {
+				return err
+			}
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgTransferChainOwnership(argsChainID, clientCtx.GetFromAddress().String(), argsNewOwner)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
