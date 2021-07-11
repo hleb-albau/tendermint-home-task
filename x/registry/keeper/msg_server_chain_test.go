@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"strconv"
 	"testing"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -10,18 +12,29 @@ import (
 	"github.com/hleb-albau/registry/x/registry/types"
 )
 
-func TestChainMsgServerCreate(t *testing.T) {
-	srv, ctx := setupMsgServer(t)
-	creator := "A"
+func TestChainMsgRegister(t *testing.T) {
+	// positive path
+	srv, k, ctx := setupMsgServer(t)
+	sdkContext := sdk.UnwrapSDKContext(ctx)
+	owner := NewAccAddress()
 	for i := 0; i < 5; i++ {
-		resp, err := srv.CreateChain(ctx, &types.MsgCreateChain{Creator: creator})
+		_, err := srv.RegisterChain(ctx, &types.MsgRegisterChain{Owner: owner, ChainID: strconv.Itoa(i)})
 		require.NoError(t, err)
-		assert.Equal(t, i, int(resp.Id))
+		assert.Equal(t, uint64(i+1), k.GetChainCount(sdkContext))
 	}
+	// can't create chain with already occupied id
+	_, err := srv.RegisterChain(ctx, &types.MsgRegisterChain{Owner: owner, ChainID: "some-id"})
+	require.NoError(t, err)
+	_, err = srv.RegisterChain(ctx, &types.MsgRegisterChain{Owner: owner, ChainID: "some-id"})
+	require.Error(t, err)
+
+	// can't create chain with not allowed characters in chainID
+	_, err = srv.RegisterChain(ctx, &types.MsgRegisterChain{Owner: "A", ChainID: "chain{x}"})
+	require.Error(t, err)
 }
 
 func TestChainMsgServerUpdate(t *testing.T) {
-	creator := "A"
+	owner := NewAccAddress()
 
 	for _, tc := range []struct {
 		desc    string
@@ -30,65 +43,21 @@ func TestChainMsgServerUpdate(t *testing.T) {
 	}{
 		{
 			desc:    "Completed",
-			request: &types.MsgUpdateChain{Creator: creator},
+			request: &types.MsgUpdateChain{Owner: owner, ChainID: "1"},
 		},
 		{
 			desc:    "Unauthorized",
-			request: &types.MsgUpdateChain{Creator: "B"},
+			request: &types.MsgUpdateChain{Owner: NewAccAddress(), ChainID: "2"},
 			err:     sdkerrors.ErrUnauthorized,
-		},
-		{
-			desc:    "Unauthorized",
-			request: &types.MsgUpdateChain{Creator: creator, Id: 10},
-			err:     sdkerrors.ErrKeyNotFound,
 		},
 	} {
 		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
-			srv, ctx := setupMsgServer(t)
-			_, err := srv.CreateChain(ctx, &types.MsgCreateChain{Creator: creator})
+			srv, _, ctx := setupMsgServer(t)
+			_, err := srv.RegisterChain(ctx, &types.MsgRegisterChain{Owner: owner, ChainID: tc.request.ChainID})
 			require.NoError(t, err)
 
 			_, err = srv.UpdateChain(ctx, tc.request)
-			if tc.err != nil {
-				require.ErrorIs(t, err, tc.err)
-			} else {
-				require.NoError(t, err)
-			}
-		})
-	}
-}
-
-func TestChainMsgServerDelete(t *testing.T) {
-	creator := "A"
-
-	for _, tc := range []struct {
-		desc    string
-		request *types.MsgDeleteChain
-		err     error
-	}{
-		{
-			desc:    "Completed",
-			request: &types.MsgDeleteChain{Creator: creator},
-		},
-		{
-			desc:    "Unauthorized",
-			request: &types.MsgDeleteChain{Creator: "B"},
-			err:     sdkerrors.ErrUnauthorized,
-		},
-		{
-			desc:    "KeyNotFound",
-			request: &types.MsgDeleteChain{Creator: creator, Id: 10},
-			err:     sdkerrors.ErrKeyNotFound,
-		},
-	} {
-		tc := tc
-		t.Run(tc.desc, func(t *testing.T) {
-			srv, ctx := setupMsgServer(t)
-
-			_, err := srv.CreateChain(ctx, &types.MsgCreateChain{Creator: creator})
-			require.NoError(t, err)
-			_, err = srv.DeleteChain(ctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {

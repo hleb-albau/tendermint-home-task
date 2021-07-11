@@ -26,17 +26,17 @@ func TestChainQuerySingle(t *testing.T) {
 	}{
 		{
 			desc:     "First",
-			request:  &types.QueryGetChainRequest{Id: msgs[0].Id},
+			request:  &types.QueryGetChainRequest{ChainID: msgs[0].ChainID},
 			response: &types.QueryGetChainResponse{Chain: &msgs[0]},
 		},
 		{
 			desc:     "Second",
-			request:  &types.QueryGetChainRequest{Id: msgs[1].Id},
+			request:  &types.QueryGetChainRequest{ChainID: msgs[1].ChainID},
 			response: &types.QueryGetChainResponse{Chain: &msgs[1]},
 		},
 		{
 			desc:    "KeyNotFound",
-			request: &types.QueryGetChainRequest{Id: uint64(len(msgs))},
+			request: &types.QueryGetChainRequest{ChainID: "-1"},
 			err:     sdkerrors.ErrKeyNotFound,
 		},
 		{

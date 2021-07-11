@@ -6,8 +6,6 @@ option go_package = "github.com/hleb-albau/registry/x/registry/types";
 import "gogoproto/gogo.proto";
 
 message Chain {
-  string creator = 1;
-  uint64 id = 2;
-  string chainId = 3; 
-  string owner = 4; 
+  string chainID = 1;
+  string owner = 2;
 }

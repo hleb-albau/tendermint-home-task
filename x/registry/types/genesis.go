@@ -24,13 +24,13 @@ func (gs GenesisState) Validate() error {
 
 	// this line is used by starport scaffolding # genesis/types/validate
 	// Check for duplicated ID in chain
-	chainIdMap := make(map[uint64]bool)
+	chainIdMap := make(map[string]bool)
 
 	for _, elem := range gs.ChainList {
-		if _, ok := chainIdMap[elem.Id]; ok {
+		if _, ok := chainIdMap[elem.ChainID]; ok {
 			return fmt.Errorf("duplicated id for chain")
 		}
-		chainIdMap[elem.Id] = true
+		chainIdMap[elem.ChainID] = true
 	}
 
 	return nil

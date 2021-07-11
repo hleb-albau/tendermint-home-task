@@ -26,6 +26,6 @@ func KeyPrefix(p string) []byte {
 }
 
 const (
-	ChainKey      = "Chain-value-"
-	ChainCountKey = "Chain-count-"
+	ChainKey      = "Chain-"
+	ChainCountKey = "ChainCount-"
 )

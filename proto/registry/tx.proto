@@ -8,35 +8,18 @@ option go_package = "github.com/hleb-albau/registry/x/registry/types";
 
 // Msg defines the Msg service.
 service Msg {
-    // this line is used by starport scaffolding # proto/tx/rpc
-  rpc CreateChain(MsgCreateChain) returns (MsgCreateChainResponse);
-  rpc UpdateChain(MsgUpdateChain) returns (MsgUpdateChainResponse);
-  rpc DeleteChain(MsgDeleteChain) returns (MsgDeleteChainResponse);
+  // this line is used by starport scaffolding # proto/tx/rpc
+  rpc RegisterChain(MsgRegisterChain) returns (Chain);
+  rpc UpdateChain(MsgUpdateChain) returns (Chain);
 }
 
 // this line is used by starport scaffolding # proto/tx/message
-message MsgCreateChain {
-  string creator = 1;
-  string chainId = 2;
-  string owner = 3;
-}
-
-message MsgCreateChainResponse {
-  uint64 id = 1;
+message MsgRegisterChain {
+  string chainID = 1;
+  string owner = 2;
 }
 
 message MsgUpdateChain {
-  string creator = 1;
-  uint64 id = 2;
-  string chainId = 3;
-  string owner = 4;
+  string chainID = 1;
+  string owner = 2;
 }
-
-message MsgUpdateChainResponse { }
-
-message MsgDeleteChain {
-  string creator = 1;
-  uint64 id = 2;
-}
-
-message MsgDeleteChainResponse { }

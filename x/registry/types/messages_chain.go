@@ -5,52 +5,52 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-var _ sdk.Msg = &MsgCreateChain{}
+var _ sdk.Msg = &MsgRegisterChain{}
 
-func NewMsgCreateChain(creator string, chainId string, owner string) *MsgCreateChain {
-	return &MsgCreateChain{
-		Creator: creator,
-		ChainId: chainId,
+func NewMsgRegisterChain(chainID string, owner string) *MsgRegisterChain {
+	return &MsgRegisterChain{
+		ChainID: chainID,
 		Owner:   owner,
 	}
 }
 
-func (msg *MsgCreateChain) Route() string {
+func (msg *MsgRegisterChain) Route() string {
 	return RouterKey
 }
 
-func (msg *MsgCreateChain) Type() string {
-	return "CreateChain"
+func (msg *MsgRegisterChain) Type() string {
+	return "RegisterChain"
 }
 
-func (msg *MsgCreateChain) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+func (msg *MsgRegisterChain) GetSigners() []sdk.AccAddress {
+	owner, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		panic(err)
 	}
-	return []sdk.AccAddress{creator}
+	return []sdk.AccAddress{owner}
 }
 
-func (msg *MsgCreateChain) GetSignBytes() []byte {
+func (msg *MsgRegisterChain) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg *MsgCreateChain) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Creator)
+func (msg *MsgRegisterChain) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+	if !validateChainID(msg.ChainID) {
+		return sdkerrors.Wrap(ErrInvalidChain, "chainID contains not allowed characters")
 	}
 	return nil
 }
 
 var _ sdk.Msg = &MsgUpdateChain{}
 
-func NewMsgUpdateChain(creator string, id uint64, chainId string, owner string) *MsgUpdateChain {
+func NewMsgUpdateChain(chainID string, owner string) *MsgUpdateChain {
 	return &MsgUpdateChain{
-		Id:      id,
-		Creator: creator,
-		ChainId: chainId,
+		ChainID: chainID,
 		Owner:   owner,
 	}
 }
@@ -64,11 +64,11 @@ func (msg *MsgUpdateChain) Type() string {
 }
 
 func (msg *MsgUpdateChain) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	owner, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		panic(err)
 	}
-	return []sdk.AccAddress{creator}
+	return []sdk.AccAddress{owner}
 }
 
 func (msg *MsgUpdateChain) GetSignBytes() []byte {
@@ -77,46 +77,26 @@ func (msg *MsgUpdateChain) GetSignBytes() []byte {
 }
 
 func (msg *MsgUpdateChain) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	_, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	return nil
 }
 
-var _ sdk.Msg = &MsgDeleteChain{}
-
-func NewMsgDeleteChain(creator string, id uint64) *MsgDeleteChain {
-	return &MsgDeleteChain{
-		Id:      id,
-		Creator: creator,
+func validateChainID(chainID string) bool {
+	if len(chainID) == 0 {
+		return false
 	}
-}
-func (msg *MsgDeleteChain) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgDeleteChain) Type() string {
-	return "DeleteChain"
-}
-
-func (msg *MsgDeleteChain) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
+	for _, r := range chainID {
+		if !validChainIDChar(r) {
+			return false
+		}
 	}
-	return []sdk.AccAddress{creator}
+	return true
 }
 
-func (msg *MsgDeleteChain) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
-func (msg *MsgDeleteChain) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
-	}
-	return nil
+// only hyphen and alphanumeric character allowed
+func validChainIDChar(c rune) bool {
+	return c == '-' || ('0' <= c && c <= '9') || ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/hleb-albau/registry/x/registry/types"
 )
 
-func setupMsgServer(t testing.TB) (types.MsgServer, context.Context) {
+func setupMsgServer(t testing.TB) (types.MsgServer, Keeper, context.Context) {
 	keeper, ctx := setupKeeper(t)
-	return NewMsgServerImpl(*keeper), sdk.WrapSDKContext(ctx)
+	return NewMsgServerImpl(*keeper), *keeper, sdk.WrapSDKContext(ctx)
 }

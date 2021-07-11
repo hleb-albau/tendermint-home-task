@@ -2,8 +2,6 @@ package cli
 
 import (
 	"context"
-	"strconv"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/hleb-albau/registry/x/registry/types"
@@ -45,7 +43,7 @@ func CmdListChain() *cobra.Command {
 
 func CmdShowChain() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show-chain [id]",
+		Use:   "show-chain [chainID]",
 		Short: "shows a chain",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -53,13 +51,9 @@ func CmdShowChain() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			id, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return err
-			}
-
+			chainID := args[0]
 			params := &types.QueryGetChainRequest{
-				Id: id,
+				ChainID: chainID,
 			}
 
 			res, err := queryClient.Chain(context.Background(), params)

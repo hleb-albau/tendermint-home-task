@@ -48,12 +48,12 @@ func (k Keeper) Chain(c context.Context, req *types.QueryGetChainRequest) (*type
 	var chain types.Chain
 	ctx := sdk.UnwrapSDKContext(c)
 
-	if !k.HasChain(ctx, req.Id) {
+	if !k.HasChain(ctx, req.ChainID) {
 		return nil, sdkerrors.ErrKeyNotFound
 	}
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.ChainKey))
-	k.cdc.MustUnmarshalBinaryBare(store.Get(GetChainIDBytes(req.Id)), &chain)
+	k.cdc.MustUnmarshalBinaryBare(store.Get(GetChainKey(req.ChainID)), &chain)
 
 	return &types.QueryGetChainResponse{Chain: &chain}, nil
 }

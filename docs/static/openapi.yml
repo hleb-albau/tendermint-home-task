@@ -10478,12 +10478,7 @@ paths:
                 items:
                   type: object
                   properties:
-                    creator:
-                      type: string
-                    id:
-                      type: string
-                      format: uint64
-                    chainId:
+                    chainID:
                       type: string
                     owner:
                       type: string
@@ -10583,7 +10578,7 @@ paths:
           type: boolean
       tags:
         - Query
-  '/hleb-albau/registry/registry/chain/{id}':
+  '/hleb-albau/registry/registry/chain/{chainID}':
     get:
       summary: Queries a chain by id.
       operationId: HlebalbauRegistryRegistryChain
@@ -10596,12 +10591,7 @@ paths:
               Chain:
                 type: object
                 properties:
-                  creator:
-                    type: string
-                  id:
-                    type: string
-                    format: uint64
-                  chainId:
+                  chainID:
                     type: string
                   owner:
                     type: string
@@ -10626,11 +10616,10 @@ paths:
                       type: string
                       format: byte
       parameters:
-        - name: id
+        - name: chainID
           in: path
           required: true
           type: string
-          format: uint64
       tags:
         - Query
   /ibc/applications/transfer/v1beta1/denom_traces:
@@ -25778,25 +25767,10 @@ definitions:
   hlebalbau.registry.registry.Chain:
     type: object
     properties:
-      creator:
-        type: string
-      id:
-        type: string
-        format: uint64
-      chainId:
+      chainID:
         type: string
       owner:
         type: string
-  hlebalbau.registry.registry.MsgCreateChainResponse:
-    type: object
-    properties:
-      id:
-        type: string
-        format: uint64
-  hlebalbau.registry.registry.MsgDeleteChainResponse:
-    type: object
-  hlebalbau.registry.registry.MsgUpdateChainResponse:
-    type: object
   hlebalbau.registry.registry.QueryAllChainResponse:
     type: object
     properties:
@@ -25805,12 +25779,7 @@ definitions:
         items:
           type: object
           properties:
-            creator:
-              type: string
-            id:
-              type: string
-              format: uint64
-            chainId:
+            chainID:
               type: string
             owner:
               type: string
@@ -25845,12 +25814,7 @@ definitions:
       Chain:
         type: object
         properties:
-          creator:
-            type: string
-          id:
-            type: string
-            format: uint64
-          chainId:
+          chainID:
             type: string
           owner:
             type: string
