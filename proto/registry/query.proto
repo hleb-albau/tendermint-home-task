@@ -4,12 +4,40 @@ package hlebalbau.registry.registry;
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 // this line is used by starport scaffolding # 1
+import "registry/chain.proto";
 
 option go_package = "github.com/hleb-albau/registry/x/registry/types";
 
 // Query defines the gRPC querier service.
 service Query {
     // this line is used by starport scaffolding # 2
+
+	// Queries a chain by id.
+	rpc Chain(QueryGetChainRequest) returns (QueryGetChainResponse) {
+		option (google.api.http).get = "/hleb-albau/registry/registry/chain/{id}";
+	}
+
+	// Queries a list of chain items.
+	rpc ChainAll(QueryAllChainRequest) returns (QueryAllChainResponse) {
+		option (google.api.http).get = "/hleb-albau/registry/registry/chain";
+	}
+
 }
 
 // this line is used by starport scaffolding # 3
+message QueryGetChainRequest {
+	uint64 id = 1;
+}
+
+message QueryGetChainResponse {
+	Chain Chain = 1;
+}
+
+message QueryAllChainRequest {
+	cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllChainResponse {
+	repeated Chain Chain = 1;
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
